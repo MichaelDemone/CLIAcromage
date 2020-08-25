@@ -1,4 +1,4 @@
-(ns achromage.utils)
+(ns acromage.utils)
 
 (def debug false)
 (defn dprint [s]

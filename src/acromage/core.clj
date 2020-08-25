@@ -1,10 +1,10 @@
-(ns achromage.core
+(ns acromage.core
   (:gen-class)
-  (:use achromage.utils)
-  (:use achromage.cards))
+  (:use acromage.utils)
+  (:use acromage.cards))
 
 (defn reload [] 
-  (require 'achromage.core 'achromage.cards 'achromage.utils :reload))
+  (require 'acromage.core 'acromage.cards 'acromage.utils :reload))
 
 (def PLAYER_PLAYING 0)
 (def AI_PLAYING 1)

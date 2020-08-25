@@ -1,5 +1,5 @@
-(ns achromage.cards
-	(:use achromage.utils))
+(ns acromage.cards
+	(:use acromage.utils))
 
 (defn get-effect [{players :players resource :resource amt :amount}]
 	(if (empty? players)
