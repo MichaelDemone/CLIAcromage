@@ -77,7 +77,7 @@
       game {:player1 player :player2 enemy :turn 0}
       ]
       (let [
-        effect (get-effect {:effected :you :resource :quarry :amount [< [:you :quarry] [:other :quarry] [:other :quarry] [:you :quarry]]} true)
+        effect (get-effect {:effected :you :resource :quarry :amount [< [:you :quarry] [:other :quarry] [:other :quarry] [:you :quarry]] :set true})
         post-effect-game (effect game)
         correct-response 6
         response (get-in post-effect-game [:player1 :quarry])

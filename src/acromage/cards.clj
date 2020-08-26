@@ -35,7 +35,7 @@
 ;; Similarly, :amount = some-int OR [some-function [:other/:you resource] [:other/:you resource] value-if-true value-if-false]
 ;; Example. [< [:you :wall] [:enemy :wall] [:enemy :wall] [:you :wall]] which will set your wall to enemy wall if it's smaller.
 
-(defn get-effect [{effected :effected resource-param :resource amt-param :amount} & set]
+(defn get-effect [{effected :effected resource-param :resource amt-param :amount set :set}]
 	(fn [game]
 		(let [
 			player-key (if (= (game :turn) 0) :player1 :player2)
@@ -98,17 +98,7 @@
 	:description "If quarry is less than enemy's quarry, +2 quarry. Otherwise, +1 quarry" 
 	:cost {:type :bricks :amount 4}   
 	:effects [
-		(fn [game] 
-			(let [
-				player-key (if (game :turn 0) :player1 :player2)
-				enemy-key (if (game :turn 1) :player1 :player2)
-				player (get game player-key)
-				enemy (get game enemy-key)
-				quarry-gain (if (< (player :quarry) (enemy :quarry)) 2 1)
-				]
-				(assoc game player-key (assoc player :quarry (+ (player :quarry) quarry-gain)))
-			)
-		)
+		(get-effect {:effected :you :resource :quarry :amount [< [:you :quarry] [:other :quarry] 2 1]})
 	]
 	}
 	{:name "Dwarven Miners"             
