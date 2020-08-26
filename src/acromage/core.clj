@@ -304,7 +304,6 @@
     deck (shuffle all-cards)
     game {:player1 player :player2 enemy :turn next-player :deck deck :turns 0 :win-conditions {:max-resources 100 :max-tower 100}}
     ]
-    (println "All cards" all-cards)
     (if ((first all-cards) :play-again) (println true) (println false))
     (println "First turn:" 
       (if (= next-player 0)
