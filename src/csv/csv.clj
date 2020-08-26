@@ -3,8 +3,8 @@
 		[clojure.string :as str]
 		[clojure.data.csv :as csv2]
 		[clojure.java.io :as io]
+		[utils.general :as utils]
 	)
-	(:use utils.general)
 )
 
 (defn zipmap-all [keys values-list]

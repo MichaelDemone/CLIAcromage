@@ -1,8 +1,8 @@
 (ns acromage.cards
-	(:use utils.general)
 	(:require 
 		[csv.csv :as csv]
 		[clojure.string :as str]
+		[utils.general :as utils]
 	)
 )
 

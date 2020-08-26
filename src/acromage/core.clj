@@ -1,10 +1,13 @@
 (ns acromage.core
   (:gen-class)
-  (:use utils.general)
-  (:use acromage.cards))
+  (:require 
+    [acromage.cards :as cards]
+    [utils.general :as utils]
+  )
+)
 
 (defn reload [] 
-  (require 'acromage.core 'acromage.cards 'acromage.utils :reload))
+  (require 'acromage.core 'acromage.cards 'utils.general :reload))
 
 (def PLAYER_PLAYING 0)
 (def AI_PLAYING 1)
@@ -23,29 +26,32 @@
   (clojure.string/capitalize (clojure.string/replace (str word) #":" "")))
 
 (defn get-card-string [c]
-  (str
-    (c :name) 
-    " (" 
-    (get-in c [:cost :amount]) 
-    " " 
-    (format-keyword (get-in c [:cost :type]))
-    ")\n" (c :description)
+  (if (nil? c)
+    "Empty"
+    (str
+      (c :name) 
+      " (" 
+      (get-in c [:cost :amount]) 
+      " " 
+      (format-keyword (get-in c [:cost :type]))
+      ")\n" (c :description)
+    )  
   )
 )
 
 (defn print-cards [p]
   (println
-    (str "(1)" (array-string (take 12 (repeat "-")))
+    (str "(1)" (utils/array-string (take 12 (repeat "-")))
     "\n" (get-card-string (p :c1))
-    "\n\n(2)" (array-string (take 12 (repeat "-")))
+    "\n\n(2)" (utils/array-string (take 12 (repeat "-")))
     "\n" (get-card-string (p :c2))
-    "\n\n(3)" (array-string (take 12 (repeat "-")))
+    "\n\n(3)" (utils/array-string (take 12 (repeat "-")))
     "\n" (get-card-string (p :c3))
-    "\n\n(4)" (array-string (take 12 (repeat "-")))
+    "\n\n(4)" (utils/array-string (take 12 (repeat "-")))
     "\n" (get-card-string (p :c4))
-    "\n\n(5)" (array-string (take 12 (repeat "-")))
+    "\n\n(5)" (utils/array-string (take 12 (repeat "-")))
     "\n" (get-card-string (p :c5))
-    "\n\n" (array-string (take 15 (repeat "-"))))
+    "\n\n" (utils/array-string (take 15 (repeat "-"))))
   )  
 )
 
@@ -78,7 +84,7 @@
 (defn apply-effects [game [effect & other-effects]]
   (if (nil? effect)
     game
-    (apply-effects (effect game) other-effects)
+    (apply-effects ((cards/get-effect effect) game) other-effects)
   )
 )
 
@@ -168,7 +174,7 @@
 (defn pick-card [game]
   (println "Please select a card you wish to play (1, 2, 3, 4, 5) or discard (1d, 2d, 3d, 4d, 5d)")
   (let [
-    card (get-input ["1" "2" "3" "4" "5" "1d" "2d" "3d" "4d" "5d"])
+    card (utils/get-input ["1" "2" "3" "4" "5" "1d" "2d" "3d" "4d" "5d"])
   ]
     (do-card-turn game card #((pick-card game)))
   )
@@ -290,12 +296,13 @@
   (println "We must find out who goes first! Heads (H) or tails (T)?")
 
   (let [
-    user-input (get-input ["H" "T"])
+    user-input (utils/get-input ["H" "T"])
     flip-result (rand-nth ["H" "T"])
     next-player (if (= user-input flip-result) 0 1)
     player {:tower 50 :wall 25 :gems 15 :beasts 15 :bricks 15 :magic 2 :zoo 2 :quarry 2 :c1 nil :c2 nil :c3 nil :c4 nil :c5 nil}
     enemy {:tower 50 :wall 25 :gems 15 :beasts 15 :bricks 15 :magic 2 :zoo 2 :quarry 2 :c1 nil :c2 nil :c3 nil :c4 nil :c5 nil}
-    deck (shuffle cards)
+    all-cards (cards/load-cards)
+    deck (shuffle all-cards)
     game {:player1 player :player2 enemy :turn next-player :deck deck :turns 0 :win-conditions {:max-resources 100 :max-tower 100}}
     ]
     (println "First turn:" 
