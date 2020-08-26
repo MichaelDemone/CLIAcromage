@@ -31,9 +31,9 @@
     (str
       (c :name) 
       " (" 
-      (get-in c [:cost :amount]) 
+      (c :cost) 
       " " 
-      (format-keyword (get-in c [:cost :type]))
+      (format-keyword (c :type))
       ")\n" (c :description)
     )  
   )
@@ -70,11 +70,11 @@
   (assoc player (keyword (str "c" card-num)) nil)
 )
 
-(defn purchase-card [player cost]
+(defn purchase-card [player card-def]
     (let [
-      new-resource-amt (- (player (cost :type)) (cost :amount))
+      new-resource-amt (- (player (card-def :type)) (card-def :cost))
       ]
-      (assoc player (cost :type) new-resource-amt)
+      (assoc player (card-def :type) new-resource-amt)
     )
 )
 
@@ -88,7 +88,7 @@
   )
 )
 
-(defn play-card [game player card-num discard card-def cost]
+(defn play-card [game player card-num discard card-def]
   (let [
     player-key (key-from-turn game)
     new-player (remove-card player card-num)
@@ -97,7 +97,7 @@
     (if discard
       (change-player new-game)
       (let [
-        purchased-player (purchase-card new-player cost)
+        purchased-player (purchase-card new-player card-def)
         turn-over-game (assoc new-game player-key purchased-player)
         post-effect-game (apply-effects turn-over-game (card-def :effects))
         ]
@@ -118,16 +118,15 @@
     card-num (subs card 0 1)
     discard (clojure.string/includes? card "d")
     card-def (player (keyword (str "c" card-num)))
-    cost (card-def :cost)
     can-discard (not (and discard (not (card-def :discardable))))
-    can-afford (or discard (>= (player (cost :type)) (cost :amount)))
+    can-afford (or discard (>= (player (card-def :type)) (card-def :cost)))
     valid (and 
       can-discard
       can-afford
     )
     ]
     (if valid
-      (play-card game player card-num discard card-def cost)
+      (play-card game player card-num discard card-def)
       (do 
         (let [issue (if can-discard "Can't afford that card" "Can't discard that card")]
           (println issue)
@@ -305,6 +304,8 @@
     deck (shuffle all-cards)
     game {:player1 player :player2 enemy :turn next-player :deck deck :turns 0 :win-conditions {:max-resources 100 :max-tower 100}}
     ]
+    (println "All cards" all-cards)
+    (if ((first all-cards) :play-again) (println true) (println false))
     (println "First turn:" 
       (if (= next-player 0)
         "You"
