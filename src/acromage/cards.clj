@@ -1,5 +1,10 @@
 (ns acromage.cards
-	(:use acromage.utils))
+	(:use utils.general)
+	(:require 
+		[csv.csv :as csv]
+		[clojure.string :as str]
+	)
+)
 
 (defn get-nested-value [game player-key enemy-key value]
 	(if (coll? value) 
@@ -34,7 +39,6 @@
 ;; That effectively says (if (> enemy-wall 10) :wall :tower) which could be used in a card that's "x damage to enemy tower if wall > 10, otherwise y damage to wall"
 ;; Similarly, :amount = some-int OR [some-function [:other/:you resource] [:other/:you resource] value-if-true value-if-false]
 ;; Example. [< [:you :wall] [:enemy :wall] [:enemy :wall] [:you :wall]] which will set your wall to enemy wall if it's smaller.
-
 (defn get-effect [{effected :effected resource-param :resource amt-param :amount set :set}]
 	(fn [game]
 		(let [
@@ -49,9 +53,14 @@
 			new-game
 		)
 	)
-	
 )
 
+(defn load-cards [] 
+	(->> 
+		(csv/load-file "resources/Cards.csv")
+		(map #(update % :description (fn [a] (str/replace a "\"" ""))))
+	)
+)
 
 (def cards [
 	{:name "Brick Shortage"     

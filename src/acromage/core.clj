@@ -1,6 +1,6 @@
 (ns acromage.core
   (:gen-class)
-  (:use acromage.utils)
+  (:use utils.general)
   (:use acromage.cards))
 
 (defn reload [] 

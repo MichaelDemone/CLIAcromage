@@ -1,4 +1,4 @@
-(ns acromage.utils)
+(ns utils.general)
 
 (def debug false)
 (defn dprint [s]
@@ -7,15 +7,29 @@
 
 (defn in? 
 	"true if collection contains element"
-	[collection element]
+	[element collection]
 	(some #(= element %) collection)
+)
+
+(defn parse-map [my-map keys-to-parse]
+	(into {} 
+		(map 
+			(fn [[key value]] 
+				(if (in? key keys-to-parse) 
+					[key (clojure.edn/read-string value)]
+					[key value] 
+				)
+			)
+			my-map
+		)
+	)
 )
 
 (defn get-input [inputs]
   (dprint "Get input called")
   (let [userinput (read-line)]
 
-	(if (in? inputs userinput) 
+	(if (in? userinput inputs) 
 		userinput
 		(do 
 		(println "Please put in one of: " inputs)

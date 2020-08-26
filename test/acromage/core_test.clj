@@ -110,3 +110,13 @@
     )
   )
 )
+
+(deftest loading-card
+  (testing "Loading cards"
+    (let [
+      cards (load-cards)
+    ]
+      (println cards)
+    )
+  )
+)
