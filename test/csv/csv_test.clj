@@ -8,7 +8,7 @@
 (deftest simple-csv-test
 	(testing "Parsing super small csv"
 		(let [
-			csv-maps (csv/load-string "Name,Value\nTestName,TestValue\nTestName2,TestValue2")
+			csv-maps (csv/load-csv-string "Name,Value\nTestName,TestValue\nTestName2,TestValue2")
 			]
 			(is (= ((first csv-maps) :Name) "TestName"))
 			(is (= ((first csv-maps) :Value) "TestValue"))
