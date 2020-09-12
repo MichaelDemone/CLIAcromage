@@ -12,7 +12,7 @@
 )
 
 ;; Load a comma separated string and return a list of maps with column name as key and value as cell value.
-(defn load-string [csv-string]
+(defn load-csv-string [csv-string]
 	(let [
 		lines (str/split-lines csv-string) ;; Split on new lines (note, can't have new lines in descriptions.)
 		split-lines (map #(str/split % #",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)") lines) ; Split on commas not in quotes. Regex thanks to https://stackoverflow.com/questions/1757065/java-splitting-a-comma-separated-string-but-ignoring-commas-in-quotes
@@ -23,8 +23,8 @@
 	)
 )
 
-(defn load-file [file-name]
-	(load-string (slurp file-name))
+(defn load-csv-file [file-name]
+	(load-csv-string (slurp file-name))
 )
 
 (defn csv-data->maps [csv-data]

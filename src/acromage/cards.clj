@@ -57,7 +57,7 @@
 
 (defn load-cards [] 
 	(->> 
-		(csv/load-file "resources/Cards.csv")
+		(csv/load-csv-file "resources/Cards.csv")
 		(map #(update % :description (fn [a] (str/replace a "\"" ""))))
 		(map #(utils/parse-map % [:discardable :play-again :type :cost :effects]))
 	)
