@@ -246,6 +246,37 @@
   )  
 )
 
+(defn get-game-change [old-game new-game player-key resource-key]
+  (let [
+    old (get-in old-game [player-key resource-key])
+    new (get-in new-game [player-key resource-key])
+    ]
+    (if (= old new) "" (str "\t" (format-keyword resource-key) " " old "->" new " (" (if (< 0 (- new old)) "+" "") (- new old) ")\n"))
+  )
+)
+
+(defn get-turn-change-text [old-game new-game]
+  (let [
+    players [:player1 :player2]
+    resources [:tower :wall :gems :bricks :beasts :magic :quarry :zoo]
+    resource-changes (map 
+                        (fn [player-key] 
+                          (apply str
+                            (str (format-keyword player-key) "\n") 
+                            (apply str (map 
+                              (fn [resource-key] 
+                                (get-game-change old-game new-game player-key resource-key)
+                              ) 
+                              resources
+                            ))
+                          )
+                        ) 
+                        players)
+  ]
+    (apply str resource-changes)
+  )
+)
+
 (defn do-turn 
   [game]
   (let [updated-game (do-resource-gains (fill-nil-cards game))]
