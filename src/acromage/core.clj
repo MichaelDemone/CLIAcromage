@@ -316,7 +316,8 @@
 
 (defn do-turn 
   [game]
-  (let [updated-game (do-resource-gains (fill-nil-cards game))]
+  (let [updated-game (->> game fill-nil-cards do-resource-gains)]
+    
     (if (= (updated-game :turn) PLAYER_PLAYING)
       (do (println "Player's turn!") (do-prompt updated-game))
       (do (println "Enemy's turn!") (do-enemy updated-game))
@@ -352,7 +353,6 @@
       (winner)
     )
   )
-  
 )
 
 (defn -main
@@ -372,7 +372,6 @@
     deck (shuffle all-cards)
     game {:player1 player :player2 enemy :turn next-player :deck deck :turns 0 :win-conditions {:max-resources 100 :max-tower 100}}
     ]
-    (if ((first all-cards) :play-again) (println true) (println false))
     (println "First turn:" 
       (if (= next-player 0)
         "You"
