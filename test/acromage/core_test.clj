@@ -116,7 +116,40 @@
     (let [
       cards (load-cards)
     ]
-      (println cards)
+      ;;(println cards)
+    )
+  )
+)
+
+(deftest game-changes
+  (testing "Displaying game changes"
+    (let [
+      old-player {:tower 50 :wall 25 :gems 15 :beasts 15 :bricks 15 :magic 2 :zoo 2 :quarry 2 :c1 nil :c2 nil :c3 nil :c4 nil :c5 nil}
+      old-enemy {:tower 50 :wall 25 :gems 15 :beasts 15 :bricks 15 :magic 2 :zoo 2 :quarry 2 :c1 nil :c2 nil :c3 nil :c4 nil :c5 nil}
+      old-game {:player1 old-player :player2 old-enemy}
+      new-player {:tower 60 :wall 20 :gems 15 :beasts 15 :bricks 15 :magic 2 :zoo 2 :quarry 2 :c1 nil :c2 nil :c3 nil :c4 nil :c5 nil}
+      new-enemy {:tower 50 :wall 25 :gems 10 :beasts 15 :bricks 15 :magic 1 :zoo 2 :quarry 2 :c1 nil :c2 nil :c3 nil :c4 nil :c5 nil}
+      new-game {:player1 new-player :player2 new-enemy}
+      turn-change-text (get-turn-change-text old-game new-game)
+    ]
+      (is (= "Player1\n\tTower 50->60 (+10)\n\tWall 25->20 (-5)\nPlayer2\n\tGems 15->10 (-5)\n\tMagic 2->1 (-1)\n" turn-change-text))
+    )
+  )
+)
+
+
+(deftest dealing-with-damage
+  (testing "If damage works on wall"
+    (let [
+      old-player {:tower 50 :wall 25 :gems 15 :beasts 15 :bricks 15 :magic 2 :zoo 2 :quarry 2 :c1 nil :c2 nil :c3 nil :c4 nil :c5 nil}
+      old-enemy {:tower 50 :wall 25 :gems 15 :beasts 15 :bricks 15 :magic 2 :zoo 2 :quarry 2 :c1 nil :c2 nil :c3 nil :c4 nil :c5 nil :damage 10}
+      old-game {:player1 old-player :player2 old-enemy}
+      new-player {:tower 50 :wall 25 :gems 15 :beasts 15 :bricks 15 :magic 2 :zoo 2 :quarry 2 :c1 nil :c2 nil :c3 nil :c4 nil :c5 nil}
+      new-enemy {:tower 50 :wall 15 :gems 15 :beasts 15 :bricks 15 :magic 2 :zoo 2 :quarry 2 :c1 nil :c2 nil :c3 nil :c4 nil :c5 nil :damage 0}
+      new-game {:player1 new-player :player2 new-enemy}
+      damage-game (deal-with-damage old-game)
+    ]
+      (is (= damage-game new-game))
     )
   )
 )

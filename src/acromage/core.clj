@@ -81,10 +81,47 @@
 (defn key-from-turn [game]
   (if (= (game :turn) PLAYER_PLAYING) :player1 :player2))
 
-(defn apply-effects [game [effect & other-effects]]
-  (if (nil? effect)
-    game
-    (apply-effects ((cards/get-effect effect) game) other-effects)
+
+(defn deal-with-damage 
+  ([game [player-key & others]]
+    (if (nil? player-key)
+      game
+      (let [
+        player (get game player-key)
+      ]
+        (if (nil? (get player :damage))
+          (deal-with-damage game others)
+          (let [
+            dmg (get player :damage)
+            wall (get player :wall)
+            tower (get player :tower)
+            new-wall (if (> wall dmg) (- wall dmg) 0)
+            new-dmg (if (> wall dmg) 0 (- dmg wall))
+            new-tower (- tower new-dmg)
+            new-player (assoc player :wall new-wall :tower new-tower :damage 0)
+            new-game (assoc game player-key new-player)
+          ]
+            (deal-with-damage new-game others)
+          )
+        )
+      )
+    )
+  )
+  ([game]
+    (deal-with-damage game [:player1 :player2])
+  )
+)
+
+(defn apply-effects [game effects]
+  ;; TODO: Find out if this is how local functions should be done in clojure.
+  (let [
+    apply-effects-recur (fn [game [effect & other-effects]]
+                          (if (nil? effect)
+                            game
+                            (recur ((cards/get-effect effect) game) other-effects)
+                          ))
+  ]
+    (deal-with-damage (apply-effects-recur game effects))
   )
 )
 
