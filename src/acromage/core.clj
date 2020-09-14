@@ -3,6 +3,8 @@
   (:require 
     [acromage.cards :as cards]
     [utils.general :as utils]
+    [lanterna.terminal :as t]
+    [acromage.user-interface :as ui]
   )
 )
 
@@ -11,49 +13,6 @@
 
 (def PLAYER_PLAYING 0)
 (def AI_PLAYING 1)
-
-(defn print-stats [p]
-  (println 
-    "Tower: " (p :tower) 
-    "\nWall: " (p :wall) 
-    "\nGems(+Magic): " (p :gems) "(+" (p :magic) "/turn)"
-    "\nBricks(+Quarry): " (p :bricks) "(+" (p :quarry) "/turn)"
-    "\nBeasts(+Zoo): " (p :beasts) "(+" (p :zoo) "/turn)"
-  )
-)
-
-(defn format-keyword [word]
-  (clojure.string/capitalize (clojure.string/replace (str word) #":" "")))
-
-(defn get-card-string [c]
-  (if (nil? c)
-    "Empty"
-    (str
-      (c :name) 
-      " (" 
-      (c :cost) 
-      " " 
-      (format-keyword (c :type))
-      ")\n" (c :description)
-    )  
-  )
-)
-
-(defn print-cards [p]
-  (println
-    (str "(1)" (utils/array-string (take 12 (repeat "-")))
-    "\n" (get-card-string (p :c1))
-    "\n\n(2)" (utils/array-string (take 12 (repeat "-")))
-    "\n" (get-card-string (p :c2))
-    "\n\n(3)" (utils/array-string (take 12 (repeat "-")))
-    "\n" (get-card-string (p :c3))
-    "\n\n(4)" (utils/array-string (take 12 (repeat "-")))
-    "\n" (get-card-string (p :c4))
-    "\n\n(5)" (utils/array-string (take 12 (repeat "-")))
-    "\n" (get-card-string (p :c5))
-    "\n\n" (utils/array-string (take 15 (repeat "-"))))
-  )  
-)
 
 (defn change-player [game]
   (let [
@@ -149,7 +108,7 @@
   
 )
 
-(defn do-card-turn [game card on-fail]
+(defn can-play-card [game card]
   (let [
     player (game (key-from-turn game))
     card-num (subs card 0 1)
@@ -162,67 +121,49 @@
       can-afford
     )
     ]
-    (if valid
-      (play-card game player card-num discard card-def)
-      (do 
-        (let [issue (if can-discard "Can't afford that card" "Can't discard that card")]
-          (println issue)
-        )
-        (on-fail)
-      )
-    )
+    valid
   )
 )
 
-(defn do-enemy [game]
-  (if-not (= (game :turn) AI_PLAYING)
-    (println "do-enemy called but its players turn!!"))
-
+(defn do-card-turn [game card]
   (let [
-    card (rand-nth ["1" "2" "3" "4" "5" "1d" "2d" "3d" "4d" "5d"])
+    player (game (key-from-turn game))
+    card-num (subs card 0 1)
+    discard (clojure.string/includes? card "d")
+    card-def (player (keyword (str "c" card-num)))
+    new-game (play-card game player card-num discard card-def)
+    ]
+    new-game
+  )
+)
+
+(defn do-enemy [game term]
+  (let [
+    card (rand-nth (filter #(can-play-card game %) ["1" "2" "3" "4" "5" "1d" "2d" "3d" "4d" "5d"]))
     card-num (clojure.string/replace card "d" "")
     card-keyword (keyword (str "c" card-num))
     player-card (get-in game [:player2 card-keyword])
     discard (clojure.string/includes? card "d")
+    card-def (get-in game [:player2 (keyword (str "c" card-num))])
   ]
-    (println "Enemy" (if discard "discarded" "played") "a card!" (get-card-string player-card))
-    (do-card-turn game card #((do-enemy game)))
+    (ui/display-enemy-card term card-def (if discard "Discarded" "Played"))
+    (do-card-turn game card)
   )
 )
 
-(defn print-game-state [game]
+(defn pick-card [game term]
   (let [
-    p1 (game :player1)
-    p2 (game :player2)
-    ]
-
-    (println "\nPlayer 2s state:")
-    (print-stats p2)
-
-    (println "\n\nIt's player 1s turn!")
-    (println "Your current stats:")
-    (print-stats p1)
-    (println "Your current cards:")
-    (print-cards p1)
-  )
-)
-
-(defn pick-card [game]
-  (println "Please select a card you wish to play (1, 2, 3, 4, 5) or discard (1d, 2d, 3d, 4d, 5d)")
-  (let [
-    card (utils/get-input ["1" "2" "3" "4" "5" "1d" "2d" "3d" "4d" "5d"])
+    cards (filter #(can-play-card game %) ["1" "2" "3" "4" "5"])
+    discard-cards (filter #(can-play-card game %) ["1d" "2d" "3d" "4d" "5d"])
+    commas (repeat ", ")
+    playable (concat cards discard-cards)
+    card-string (apply str (interleave cards commas))
+    discard-string (apply str (interleave discard-cards commas))
+    user-text (str "Please select a card you wish to play (" card-string ") or discard (" discard-string ")")
+    card (ui/get-user-input term user-text playable)
   ]
-    (do-card-turn game card #((pick-card game)))
+    (do-card-turn game card)
   )
-)
-
-(defn do-prompt [game]
-  (if-not (= (:turn game) PLAYER_PLAYING)
-    (println "do-prompt called but its enemies turn!!"))
-
-  (print-game-state game)
-
-  (pick-card game)
 )
 
 (defn fill-nil-player [player deck card-keyword]
@@ -236,6 +177,11 @@
   (let [ 
     res (fill-nil-player (game player-keyword) (game :deck) card-keyword)
     game1 (assoc game player-keyword (first res))
+    deck (second res)
+    deck  (if (= (count deck) 0)
+            () 
+            deck
+          )
     ]
     (assoc game1 :deck (second res))
   )
@@ -283,44 +229,13 @@
   )  
 )
 
-(defn get-game-change [old-game new-game player-key resource-key]
-  (let [
-    old (get-in old-game [player-key resource-key])
-    new (get-in new-game [player-key resource-key])
-    ]
-    (if (= old new) "" (str "\t" (format-keyword resource-key) " " old "->" new " (" (if (< 0 (- new old)) "+" "") (- new old) ")\n"))
-  )
-)
-
-(defn get-turn-change-text [old-game new-game]
-  (let [
-    players [:player1 :player2]
-    resources [:tower :wall :gems :bricks :beasts :magic :quarry :zoo]
-    resource-changes (map 
-                        (fn [player-key] 
-                          (apply str
-                            (str (format-keyword player-key) "\n") 
-                            (apply str (map 
-                              (fn [resource-key] 
-                                (get-game-change old-game new-game player-key resource-key)
-                              ) 
-                              resources
-                            ))
-                          )
-                        ) 
-                        players)
-  ]
-    (apply str resource-changes)
-  )
-)
-
 (defn do-turn 
-  [game]
+  [game term]
   (let [updated-game (->> game fill-nil-cards do-resource-gains)]
-    
+    (ui/display-game term updated-game)
     (if (= (updated-game :turn) PLAYER_PLAYING)
-      (do (println "Player's turn!") (do-prompt updated-game))
-      (do (println "Enemy's turn!") (do-enemy updated-game))
+      (pick-card updated-game term)
+      (do-enemy updated-game term)
     )
   )
 )
@@ -346,10 +261,12 @@
   )
 )
 
-(defn do-game [game] 
-  (let [winner (check-win-states game)]
+(defn do-game [term game] 
+  (let [
+    winner (check-win-states game)
+    ]
     (if (= -1 winner) 
-      (do-game (do-turn game))
+      (do-game term (do-turn game term))
       (winner)
     )
   )
@@ -359,29 +276,58 @@
   "Play a game of achromage!"
   [& args]
 
-  (println "Welcome to achromage (Command line edition)!")
-  (println "We must find out who goes first! Heads (H) or tails (T)?")
+  
+  (println )
 
   (let [
-    user-input (utils/get-input ["H" "T"])
+    term (t/get-terminal :swing {:cols 120 :rows 30})
+    res (t/start term)
+    res (ui/get-user-input term "Welcome to achromage (Command line edition)! <Enter to continue>" [""])
+    user-input (ui/get-user-input term "We must find out who goes first! Heads (H) or tails (T)?" ["H" "T"])
     flip-result (rand-nth ["H" "T"])
     next-player (if (= user-input flip-result) 0 1)
-    player {:tower 50 :wall 25 :gems 15 :beasts 15 :bricks 15 :magic 2 :zoo 2 :quarry 2 :c1 nil :c2 nil :c3 nil :c4 nil :c5 nil}
-    enemy {:tower 50 :wall 25 :gems 15 :beasts 15 :bricks 15 :magic 2 :zoo 2 :quarry 2 :c1 nil :c2 nil :c3 nil :c4 nil :c5 nil}
+    player {:tower 50 :wall 25 :gems 15 :beasts 15 :bricks 15 :magic 2 :zoo 2 :quarry 2 :c1 nil :c2 nil :c3 nil :c4 nil :c5 nil :damage 0}
+    enemy {:tower 50 :wall 25 :gems 15 :beasts 15 :bricks 15 :magic 2 :zoo 2 :quarry 2 :c1 nil :c2 nil :c3 nil :c4 nil :c5 nil :damage 0}
     all-cards (cards/load-cards)
     deck (shuffle all-cards)
     game {:player1 player :player2 enemy :turn next-player :deck deck :turns 0 :win-conditions {:max-resources 100 :max-tower 100}}
     ]
-    (println "First turn:" 
-      (if (= next-player 0)
-        "You"
-        "Enemy")
-    )
-    (let [winner (do-game game)]
+    (ui/put-info-text term "Flip was")
+    (Thread/sleep 500)
+    (ui/put-info-text term "Flip was.")
+    (Thread/sleep 500)
+    (ui/put-info-text term "Flip was..")
+    (Thread/sleep 500)
+    (ui/put-info-text term "Flip was...")
+    (Thread/sleep 400)
+    (ui/get-user-input term (str "Flip was... " (if (= flip-result "H") "Heads!" "Tails!") "<Enter to continue>") [""])
+
+    (let [winner (do-game term game)]
       (if (= winner 0)
         (println "You've won!")
         (println "You lost, try again soon!")
       )
     )
+  )
+)
+
+(defn test-display []
+  
+  (let [
+    next-player 0
+    player {:tower 50 :wall 25 :gems 15 :beasts 15 :bricks 15 :magic 2 :zoo 2 :quarry 2 :c1 nil :c2 nil :c3 nil :c4 nil :c5 nil :damage 0}
+    enemy {:tower 50 :wall 25 :gems 15 :beasts 15 :bricks 15 :magic 2 :zoo 2 :quarry 2 :c1 nil :c2 nil :c3 nil :c4 nil :c5 nil :damage 0}
+    all-cards (cards/load-cards)
+    deck (shuffle all-cards)
+    game {:player1 player :player2 enemy :turn next-player :deck deck :turns 0 :win-conditions {:max-resources 100 :max-tower 100}}
+    game (fill-nil-cards game)
+    term (t/get-terminal :swing {:cols 120 :rows 30})
+    ]
+    (ui/display-game term game)
+    (t/move-cursor term 0 24)
+    (t/put-string term "Which card would you like to play?")
+
+    (ui/wait-for-input term 0 25 "")
+    (t/stop term)
   )
 )

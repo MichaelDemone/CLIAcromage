@@ -5,6 +5,9 @@
   (if debug (println s) nil)
 )
 
+(defn format-keyword [word]
+  (clojure.string/capitalize (clojure.string/replace (str word) #":" "")))
+
 (defn in? 
 	"true if collection contains element"
 	[element collection]
