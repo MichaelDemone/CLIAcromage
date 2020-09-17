@@ -128,10 +128,23 @@
   (t/put-string term "Wall")
 )
 
+(defn clear-space [term start-x start-y end-x end-y]
+  (if (<= start-y end-y)
+    (do 
+      (t/move-cursor term start-x start-y)
+      (t/put-string term (apply str (take (- end-x start-x) (repeat " "))))
+      (clear-space term start-x (+ start-y 1) end-x end-y)
+    )
+    nil
+  )
+)
+
 (defn display-card-info [card position-x position-y term card-num]
   (let [
     color-map {:bricks :red :gems :blue :beasts :green}
     ]
+    (clear-space term position-x position-y (+ position-x 20) (+ position-y 9))
+
     (t/set-fg-color term (get color-map (get card :type)))
     (t/move-cursor term position-x position-y)
     (t/put-string term (str (apply str (take 10 (repeat "-"))) card-num (apply str (take 10 (repeat "-")))))
@@ -163,6 +176,9 @@
     enemy-start 50
     card-start-y 11
     ]
+
+    (clear-space term 0 0 67 7)
+
     (t/move-cursor term 0 1)
     (t/set-bg-color term :blue)
     (t/put-string term "Gems (+ Magic)")
@@ -199,6 +215,7 @@
 )
 
 (defn put-info-text [term text]
+  (clear-space term 0 120 24 29)
 	(t/move-cursor term 0 24)
   (t/put-string term "                                                                                   ")
   (t/move-cursor term 0 24)
@@ -208,7 +225,7 @@
 (defn wait-for-input [term x-pos y-pos s]
   ;; clear line
   (t/move-cursor term x-pos y-pos)
-  (t/put-string term (str s "                                   "))
+  (t/put-string term s)
 
   (t/move-cursor term x-pos y-pos)
   (let [pressed-key (t/get-key-blocking term)]
@@ -221,6 +238,8 @@
 
 (defn get-user-input [term text accepted-responses]
   (put-info-text term text)
+  (clear-space term 0 25 120 29)
+
   (let [
     response (wait-for-input term 0 25 "")
     ]
