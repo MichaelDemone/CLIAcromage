@@ -25,7 +25,7 @@
 		eval-param1 (get-nested-value game player-key enemy-key param1)
 		eval-param2 (get-nested-value game player-key enemy-key param2)
 		]
-		(if (func eval-param1 eval-param2)
+		(if ((resolve func) eval-param1 eval-param2)
 			(get-nested-value game player-key enemy-key value-if-true)
 			(get-nested-value game player-key enemy-key value-if-false)
 		)
