@@ -97,7 +97,7 @@
         turn-over-game (assoc new-game player-key purchased-player)
         post-effect-game (apply-effects turn-over-game (card-def :effects))
         ]
-  
+        (println player-key "played:" (get card-def :name) "Which changed:\n" (ui/get-turn-change-text game post-effect-game))
         (if (card-def :play-again) 
           post-effect-game 
           (change-player post-effect-game)
@@ -275,9 +275,6 @@
 (defn -main
   "Play a game of achromage!"
   [& args]
-
-  
-  (println )
 
   (let [
     term (t/get-terminal :swing {:cols 120 :rows 30})
