@@ -262,6 +262,13 @@
   )
 )
 
+(defn player-lose [player]
+  (or 
+    false
+    (<= (player :tower) 0)
+  )
+)
+
 (defn player-win [player res-max tower-max]
   (or 
     (>= (player :gems) res-max)
@@ -275,8 +282,8 @@
   (let [
     res-max (get-in game [:win-conditions :max-resources])
     tower-max (get-in game [:win-conditions :max-tower])
-    p1-win (player-win (game :player1) res-max tower-max)
-    p2-win (player-win (game :player2) res-max tower-max)
+    p1-win (or (player-win (game :player1) res-max tower-max) (player-lose (game :player2)))
+    p2-win (or (player-win (game :player2) res-max tower-max) (player-lose (game :player1)))
     tie (and p1-win p2-win)
     ]
     (if tie 2 (if p2-win 1 (if p1-win 0 -1)))
