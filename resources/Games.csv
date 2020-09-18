@@ -1,0 +1,4 @@
+name,starting-tower,starting-wall,start-resource,start-resource-gain,max-resource,max-tower
+original,50,25,15,2,100,100
+poverty,10,5,0,1,50,50
+high-rollers,100,50,30,3,300,200

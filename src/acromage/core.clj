@@ -5,6 +5,7 @@
     [utils.general :as utils]
     [lanterna.terminal :as t]
     [acromage.user-interface :as ui]
+    [csv.csv :as csv]
   )
 )
 
@@ -303,6 +304,20 @@
   )
 )
 
+(defn pick-game-type [term]
+  
+  (let [
+    game-types (->> 
+                  (csv/load-csv-file "resources/Games.csv")
+                  (map #(utils/parse-map % [:starting-tower :starting-wall :start-resource :start-resource-gain :max-resource :max-tower]))
+                )
+    names (map #(:name %) game-types)
+    response (ui/get-user-input term (str "Please select your game type! (" (clojure.string/join ", " names) ")") names)
+  ]
+    (first (filter #(= (:name %) response) game-types))
+  )
+)
+
 (defn -main
   "Play a game of achromage!"
   [& args]
@@ -311,14 +326,35 @@
     term (t/get-terminal :swing {:cols 120 :rows 30})
     res (t/start term)
     res (ui/get-user-input term "Welcome to achromage (Command line edition)! <Enter to continue>" [""])
+    game-type (pick-game-type term)
+    tmp (println game-type)
     user-input (ui/get-user-input term "We must find out who goes first! Heads (H) or tails (T)?" ["H" "T"])
     flip-result (rand-nth ["H" "T"])
     next-player (if (= user-input flip-result) 0 1)
-    player {:tower 50 :wall 25 :gems 15 :beasts 15 :bricks 15 :magic 2 :zoo 2 :quarry 2 :c1 nil :c2 nil :c3 nil :c4 nil :c5 nil :damage 0}
-    enemy {:tower 50 :wall 25 :gems 15 :beasts 15 :bricks 15 :magic 2 :zoo 2 :quarry 2 :c1 nil :c2 nil :c3 nil :c4 nil :c5 nil :damage 0}
+    starting-tower (:starting-tower game-type)
+    starting-wall (:starting-wall game-type)
+    starting-resources (:start-resource game-type)
+    starting-gain (:start-resource-gain game-type)
+    max-resource (:max-resource game-type)
+    max-tower (:max-tower game-type)
+    player {
+      :tower starting-tower 
+      :wall starting-wall 
+      :gems starting-resources 
+      :beasts starting-resources 
+      :bricks starting-resources 
+      :magic starting-gain
+      :zoo starting-gain
+      :quarry starting-gain 
+      :c1 nil 
+      :c2 nil 
+      :c3 nil 
+      :c4 nil 
+      :c5 nil 
+      :damage 0}
     all-cards (cards/load-cards)
     deck (shuffle all-cards)
-    game {:cards all-cards :player1 player :player2 enemy :turn next-player :deck deck :turns 0 :win-conditions {:max-resources 100 :max-tower 100}}
+    game {:cards all-cards :player1 player :player2 player :turn next-player :deck deck :turns 0 :win-conditions {:max-resources max-resource :max-tower max-tower}}
     ]
     (ui/put-info-text term "Flip was")
     (Thread/sleep 500)
