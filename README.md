@@ -19,7 +19,10 @@ CLIAcromage creates a terminal using [lanterna](https://github.com/MultiMUD/cloj
 ![Photo of terminal](https://github.com/MichaelDemone/CLIAcromage/blob/master/doc/Terminal.png)
 
 ### Config Files
-Currently all of the cards are defined in resources/Cards.csv and parsed with my own parser. You can load the CSV file into google sheets/excel and add or remove cards to your heart's content. For the most part, configurations are straight-forward:
+This project has several config files that allow you to change how the game behaves.
+
+#### Cards
+Currently all of the cards are defined in [resources/Cards.csv](https://github.com/MichaelDemone/CLIAcromage/blob/master/resources/Cards.csv) and parsed with my own parser. You can load the CSV file into google sheets/excel and add or remove cards to your heart's content. For the most part, configurations are straight-forward:
 
 `name`, `description`, `discardable`, and `cost` are all self-explanatory. 
 
@@ -28,3 +31,22 @@ Currently all of the cards are defined in resources/Cards.csv and parsed with my
 `type` is the type of the card (i.e. what it costs). This is `:gems` `:bricks` or `:beasts`. 
 
 `effects` is a bit more flexible at the cost of complexity - it is allowed to have simple logic. [Here is a discussion of effects.](https://github.com/MichaelDemone/CLIAcromage/blob/master/doc/effects.md)
+
+#### Game Types
+At the beginning of the game, the user is prompted to put in what kind of game they wish to play. This is completely configurable and is done in [resources/Games.csv](https://github.com/MichaelDemone/CLIAcromage/blob/master/resources/Games.csv).
+
+Each game is defined with the following:
+
+`name` is the name of the game
+
+`starting-tower` is the amount of tower each player starts with
+
+`starting-wall` is the amount of wall each player starts with
+
+`start-resource` is the amount of bricks, gems, and beasts each player starts with
+
+`start-resource-gain` is the amoutn of quarry, magic, and zoo each player starts with
+
+`max-resource` is the amount of bricks, gems, or beasts required to win the game
+
+`max-tower` is the amount of tower required to win the game
