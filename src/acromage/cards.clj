@@ -35,7 +35,7 @@
 ;; This is some fun! You can supply an effect with the following:
 ;; :effected = :you/:other
 ;; :resource = (:gems/:magic/:tower/:wall/etc) OR [some-function [:other/:you resource] [:other/:you resource] value-if-true value-if-false]
-;; For example: :resource could be [> [:other :wall] [10] :wall :tower]
+;; For example: :resource could be [> [:other :wall] 10 :wall :tower]
 ;; That effectively says (if (> enemy-wall 10) :wall :tower) which could be used in a card that's "x damage to enemy tower if wall > 10, otherwise y damage to wall"
 ;; Similarly, :amount = some-int OR [some-function [:other/:you resource] [:other/:you resource] value-if-true value-if-false]
 ;; Example. [< [:you :wall] [:enemy :wall] [:enemy :wall] [:you :wall]] which will set your wall to enemy wall if it's smaller.
