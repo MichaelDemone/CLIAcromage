@@ -16,7 +16,7 @@ The winning conditions are configurable, but are defaulted to destroying the ene
 ## Implementation Features
 ### Terminal
 CLIAcromage creates a terminal using [lanterna](https://github.com/MultiMUD/clojure-lanterna) to display the game state and get user input!
-![Photo of terminal](https://github.com/MichaelDemone/CLIAcromage/blob/master/doc/ScreenshotCropped.jpg)
+![Photo of terminal](https://github.com/MichaelDemone/CLIAcromage/blob/master/doc/Terminal.png)
 
 ### Config Files
 Currently all of the cards are defined in resources/Cards.csv and parsed with my own parser. You can load the CSV file into google sheets/excel and add or remove cards to your heart's content. For the most part, configurations are straight-forward:
