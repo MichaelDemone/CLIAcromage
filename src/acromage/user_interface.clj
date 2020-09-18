@@ -211,6 +211,7 @@
 )
 
 (defn display-enemy-card [term card play-or-discard]
+  (clear-space term 75 0 120 9)
   (display-card-info card 75 0 term (str "Enemy's " play-or-discard " Card"))
 )
 
