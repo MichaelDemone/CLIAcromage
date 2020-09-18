@@ -166,24 +166,46 @@
   )
 )
 
-(defn fill-nil-player [player deck card-keyword]
+(defn contains-value? [val col]
+  (if (some #(= (second %) val) col) true false)
+)
+
+(defn fill-deck [game deck]
+  ; Fill the deck by checking
+  ; Putting all cards into deck that aren't in players' hands.
+  (println "deck size" (count deck))
+  (if (= (count deck) 0)
+    (do 
+      (println "Reshuffling cards")
+      (->> 
+        (:cards game)
+        (filter 
+          #(and 
+            (not (contains-value? % (:player1 game)))
+            (not (contains-value? % (:player2 game)))
+          )
+        )
+        (shuffle)
+      )
+    )
+    deck
+  )
+)
+
+(defn fill-nil-player [player deck card-keyword game]
   (if (= (player card-keyword) nil)
-    [(assoc player card-keyword (first deck)) (drop 1 deck)]
+    [(assoc player card-keyword (first deck)) (fill-deck game (drop 1 deck))]
     [player deck]
   )  
 )
 
 (defn fill-nil [game player-keyword card-keyword]
   (let [ 
-    res (fill-nil-player (game player-keyword) (game :deck) card-keyword)
+    res (fill-nil-player (game player-keyword) (game :deck) card-keyword game)
     game1 (assoc game player-keyword (first res))
     deck (second res)
-    deck  (if (= (count deck) 0)
-            () 
-            deck
-          )
     ]
-    (assoc game1 :deck (second res))
+    (assoc game1 :deck deck)
   )
 )
 
