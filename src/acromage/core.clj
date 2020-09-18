@@ -334,26 +334,6 @@
         (println "You lost, try again soon!")
       )
     )
-  )
-)
-
-(defn test-display []
-  
-  (let [
-    next-player 0
-    player {:tower 50 :wall 25 :gems 15 :beasts 15 :bricks 15 :magic 2 :zoo 2 :quarry 2 :c1 nil :c2 nil :c3 nil :c4 nil :c5 nil :damage 0}
-    enemy {:tower 50 :wall 25 :gems 15 :beasts 15 :bricks 15 :magic 2 :zoo 2 :quarry 2 :c1 nil :c2 nil :c3 nil :c4 nil :c5 nil :damage 0}
-    all-cards (cards/load-cards)
-    deck (shuffle all-cards)
-    game {:player1 player :player2 enemy :turn next-player :deck deck :turns 0 :win-conditions {:max-resources 100 :max-tower 100}}
-    game (fill-nil-cards game)
-    term (t/get-terminal :swing {:cols 120 :rows 30})
-    ]
-    (ui/display-game term game)
-    (t/move-cursor term 0 24)
-    (t/put-string term "Which card would you like to play?")
-
-    (ui/wait-for-input term 0 25 "")
     (t/stop term)
   )
 )
