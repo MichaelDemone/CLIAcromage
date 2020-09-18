@@ -220,7 +220,7 @@
 )
 
 (defn put-info-text [term text]
-  (clear-space term 0 120 24 29)
+  (clear-space term 0 24 120 29)
 	(t/move-cursor term 0 24)
   (t/put-string term "                                                                                   ")
   (t/move-cursor term 0 24)
