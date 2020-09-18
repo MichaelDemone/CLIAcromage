@@ -2,6 +2,7 @@
   (:require [clojure.test :refer :all]
             [acromage.core :refer :all]
             [acromage.cards :refer :all]
+            [acromage.user-interface :refer :all]
   )
 )
 
@@ -43,7 +44,7 @@
       player {:quarry 2}
       enemy {:quarry 5}
       game {:player1 player :player2 enemy :turn 0}
-      effect (get-effect {:effected :you :resource :quarry :amount [< [:you :quarry] [:other :quarry] 2 1]})
+      effect (get-effect {:effected :you :resource :quarry :amount [(symbol "<") [:you :quarry] [:other :quarry] 2 1]})
       post-effect-game (effect game)
       correct-response 4
       response (get-in post-effect-game [:player1 :quarry])
@@ -59,7 +60,7 @@
       player {:quarry 2}
       enemy {:quarry 2}
       game {:player1 player :player2 enemy :turn 0}
-      effect (get-effect {:effected :you :resource :quarry :amount [< [:you :quarry] [:other :quarry] 2 1]})
+      effect (get-effect {:effected :you :resource :quarry :amount [(symbol "<") [:you :quarry] [:other :quarry] 2 1]})
       post-effect-game (effect game)
       correct-response 3
       response (get-in post-effect-game [:player1 :quarry])
@@ -77,7 +78,7 @@
       game {:player1 player :player2 enemy :turn 0}
       ]
       (let [
-        effect (get-effect {:effected :you :resource :quarry :amount [< [:you :quarry] [:other :quarry] [:other :quarry] [:you :quarry]] :set true})
+        effect (get-effect {:effected :you :resource :quarry :amount [(symbol "<") [:you :quarry] [:other :quarry] [:other :quarry] [:you :quarry]] :set true})
         post-effect-game (effect game)
         correct-response 6
         response (get-in post-effect-game [:player1 :quarry])
@@ -85,7 +86,7 @@
         (is (= correct-response response))
       )
       (let [
-        effect (get-effect {:effected :you :resource :quarry :amount [< [:you :quarry] [:other :quarry] [:other :quarry] [:you :quarry]]})
+        effect (get-effect {:effected :you :resource :quarry :amount [(symbol "<") [:you :quarry] [:other :quarry] [:other :quarry] [:you :quarry]]})
         post-effect-game (effect game)
         correct-response 8
         response (get-in post-effect-game [:player1 :quarry])
@@ -102,11 +103,35 @@
       player {}
       enemy {:wall 40 :tower 10}
       game {:player1 player :player2 enemy :turn 0}
-      effect (get-effect {:effected :other :resource [> [:other :wall] 10 :tower :wall] :amount -6})
+      effect (get-effect {:effected :other :resource [(symbol ">") [:other :wall] 10 :tower :wall] :amount -6})
       post-effect-game (effect game)
       ]
         (is (= 4 (get-in post-effect-game [:player2 :tower])))
         (is (= 40 (get-in post-effect-game [:player2 :wall])))
+    )
+  )
+)
+
+(deftest all-card-effect-test
+  (testing "Testing if applying an effect to a game causes an errors (format validation of configs)"
+    (let [
+      player {:tower 50 :wall 25 :gems 15 :beasts 15 :bricks 15 :magic 2 :zoo 2 :quarry 2 :c1 nil :c2 nil :c3 nil :c4 nil :c5 nil :damage 0}
+      enemy {:tower 50 :wall 25 :gems 15 :beasts 15 :bricks 15 :magic 2 :zoo 2 :quarry 2 :c1 nil :c2 nil :c3 nil :c4 nil :c5 nil :damage 0}
+      all-cards (load-cards)
+      deck (shuffle all-cards)
+      game {:player1 player :player2 enemy}
+      ]
+      (println (map 
+        #(apply-effects game %) 
+        (map 
+          #(do 
+            (println "Getting effect from " (:name %)) 
+            (flush) 
+            (:effects %)
+          ) 
+          all-cards
+        )
+      ))
     )
   )
 )
