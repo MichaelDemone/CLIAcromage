@@ -173,7 +173,7 @@
 (defn display-game [term game]
   (let [
     player-start 18
-    enemy-start 50
+    player2-start 50
     card-start-y 11
     ]
 
@@ -192,21 +192,25 @@
     (t/set-bg-color term :default)
 
     (t/move-cursor term player-start 0)
-    (t/put-string term "Player")
+    (t/put-string term "Player 1")
 
-    (t/move-cursor term enemy-start 0)
-    (t/put-string term "Enemy")
+    (t/move-cursor term player2-start 0)
+    (t/put-string term "Player 2")
 
     ;; Set player text
     (t/set-bg-color term :default)
     (display-player-info (get game :player1) player-start 1 term)
-    (display-player-info (get game :player2) enemy-start 1 term)
+    (display-player-info (get game :player2) player2-start 1 term)
 
-    (display-card-info (get-in game [:player1 :c1]) 0 card-start-y term 1)
-    (display-card-info (get-in game [:player1 :c2]) 22 card-start-y term 2)
-    (display-card-info (get-in game [:player1 :c3]) 44 card-start-y term 3)
-    (display-card-info (get-in game [:player1 :c4]) 66 card-start-y term 4)
-    (display-card-info (get-in game [:player1 :c5]) 88 card-start-y term 5)
+    (let 
+      [player-key (if (= (game :turn) 0) :player1 :player2)]
+      (display-card-info (get-in game [player-key :c1]) 0 card-start-y term 1)
+      (display-card-info (get-in game [player-key :c2]) 22 card-start-y term 2)
+      (display-card-info (get-in game [player-key :c3]) 44 card-start-y term 3)
+      (display-card-info (get-in game [player-key :c4]) 66 card-start-y term 4)
+      (display-card-info (get-in game [player-key :c5]) 88 card-start-y term 5)
+    )
+    
   )
 )
 

@@ -98,7 +98,7 @@
         turn-over-game (assoc new-game player-key purchased-player)
         post-effect-game (apply-effects turn-over-game (card-def :effects))
         ]
-        (println player-key "played:" (get card-def :name) "Which changed:\n" (ui/get-turn-change-text game post-effect-game))
+        (println player-key "played" (get card-def :name) "\n" (ui/get-turn-change-text game post-effect-game))
         (if (card-def :play-again) 
           post-effect-game 
           (change-player post-effect-game)
@@ -143,9 +143,9 @@
     card (rand-nth (filter #(can-play-card game %) ["1" "2" "3" "4" "5" "1d" "2d" "3d" "4d" "5d"]))
     card-num (clojure.string/replace card "d" "")
     card-keyword (keyword (str "c" card-num))
-    player-card (get-in game [:player2 card-keyword])
     discard (clojure.string/includes? card "d")
-    card-def (get-in game [:player2 (keyword (str "c" card-num))])
+    player (game (key-from-turn game))
+    card-def (player (keyword (str "c" card-num)))
   ]
     (ui/display-enemy-card term card-def (if discard "Discarded" "Played"))
     (do-card-turn game card)
@@ -158,10 +158,8 @@
     discard-cards (filter #(can-play-card game %) ["1d" "2d" "3d" "4d" "5d"])
     commas (repeat ", ")
     playable (concat cards discard-cards)
-    card-string (interleave cards commas)
-    card-string (apply str (drop-last card-string)) ;; Remove ending commas
-    discard-string (interleave discard-cards commas)
-    discard-string (apply str (drop-last discard-string)) ;; Remove ending commas
+    card-string (clojure.string/join ", " cards)
+    discard-string (clojure.string/join ", " discard-cards)
     user-text (str "Please select a card you wish to play (" card-string ") or discard (" discard-string ")")
     card (ui/get-user-input term user-text playable)
   ]
@@ -176,7 +174,6 @@
 (defn fill-deck [game deck]
   ; Fill the deck by checking
   ; Putting all cards into deck that aren't in players' hands.
-  (println "deck size" (count deck))
   (if (= (count deck) 0)
     (do 
       (println "Reshuffling cards")
@@ -258,7 +255,7 @@
   [game term]
   (let [updated-game (->> game fill-nil-cards do-resource-gains)]
     (ui/display-game term updated-game)
-    (if (= (updated-game :turn) PLAYER_PLAYING)
+    (if (= :human (get-in updated-game [(key-from-turn updated-game) :type]))
       (pick-card updated-game term)
       (do-enemy updated-game term)
     )
@@ -289,7 +286,7 @@
     p2-win (or (player-win (game :player2) res-max tower-max) (player-lose (game :player1)))
     tie (and p1-win p2-win)
     ]
-    (if tie 2 (if p2-win 1 (if p1-win 0 -1)))
+    (if tie :all (if p2-win :player2 (if p1-win :player1 :none)))
   )
 )
 
@@ -297,7 +294,7 @@
   (let [
     winner (check-win-states game)
     ]
-    (if (= -1 winner) 
+    (if (= :none winner) 
       (do-game term (do-turn game term))
       winner
     )
@@ -351,10 +348,12 @@
       :c3 nil 
       :c4 nil 
       :c5 nil 
-      :damage 0}
+      :damage 0
+      :type :human}
+    player2 (assoc player :type :ai)
     all-cards (cards/load-cards)
     deck (shuffle all-cards)
-    game {:cards all-cards :player1 player :player2 player :turn next-player :deck deck :turns 0 :win-conditions {:max-resources max-resource :max-tower max-tower}}
+    game {:cards all-cards :player1 player :player2 player2 :turn next-player :deck deck :turns 0 :win-conditions {:max-resources max-resource :max-tower max-tower}}
     ]
     (ui/put-info-text term "Flip was")
     (Thread/sleep 500)
@@ -367,11 +366,16 @@
     (ui/get-user-input term (str "Flip was... " (if (= flip-result "H") "Heads!" "Tails!") "<Enter to continue>") [""])
 
     (let [winner (do-game term game)]
-      (if (= winner 0)
-        (println "You've won!")
-        (println "You lost, try again soon!")
+      (t/clear term)
+      (if (= winner :all)
+        (ui/get-user-input term "A tie has occured! <Enter to quit>" [""])
+        (if (= winner :player1) 
+          (ui/get-user-input term "Player 1 has won! <Enter to quit>" [""])
+          (ui/get-user-input term "Player 2 has won! <Enter to quit>" [""])
+        )
       )
     )
+    
     (t/stop term)
   )
 )
