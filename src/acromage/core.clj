@@ -157,8 +157,10 @@
     discard-cards (filter #(can-play-card game %) ["1d" "2d" "3d" "4d" "5d"])
     commas (repeat ", ")
     playable (concat cards discard-cards)
-    card-string (apply str (interleave cards commas))
-    discard-string (apply str (interleave discard-cards commas))
+    card-string (interleave cards commas)
+    card-string (apply str (drop-last card-string)) ;; Remove ending commas
+    discard-string (interleave discard-cards commas)
+    discard-string (apply str (drop-last discard-string)) ;; Remove ending commas
     user-text (str "Please select a card you wish to play (" card-string ") or discard (" discard-string ")")
     card (ui/get-user-input term user-text playable)
   ]
