@@ -114,5 +114,38 @@ Breaking this down again:
 This can be read as `if (current player's wall = other player's wall) then 2 otherwise 1`. This roughly reflects the cards description.
 
 
+### Complex Set Example
+This example covers when set is useful. The "Parity" card is being examined and it has the defintion
+
+> All player's magic equals the highest player's magic
+
+with the effects
+
+`[{:set true :effected :you :resource :magic :amount [< [:you :magic] [:other :magic] [:other :magic] [:you :magic]]} {:set true :effected :other :resource :magic :amount [< [:you :magic] [:other :magic] [:other :magic] [:you :magic]]}]`
+
+So there is 2 effects going on here, 1 to set the current player's magic to the highest player's magic, and 1 to set the enemies magic to the highest player's magic. We will only examine one because doing both feels redundant.
+
+`{:set true :effected :you :resource :magic :amount [< [:you :magic] [:other :magic] [:other :magic] [:you :magic]]}`
+
+`:effected` is `:you` because this is dealing with setting your magic to the highest player's magic.
+
+`:resource` is `:magic` because it's dealing with magic.
+
+`:amount` is `[< [:you :magic] [:other :magic] [:other :magic] [:you :magic]]`
+
+which broken down can be
+
+`some-function` is `<` or "is less than"
+
+`parameter1` is `[:you :magic]` or "current player's magic"
+
+`parameter2` is `[:other :magic]` or "other player's magic"
+
+`result-if-true` is `[:other :magic]` or "other player's magic"
+
+`result-if-false` is `[:you :magic]` or "current player's magic"
+
+putting it all together this becomes `if (current player's magic is less than other player's magic) then other player's magic otherwise current player's magic` and the `:set true` flag says to `SET the current player's magic to that amount` rather than add that amount.
+
 ## Summary
 Hopefully with these examples you can create new cards! Remember, both `:resource` and `:amount` can contain logic, and each parameter can be be a Smart Value. Good luck :D!
