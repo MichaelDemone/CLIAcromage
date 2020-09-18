@@ -48,6 +48,7 @@
 			resource (if (keyword? resource-param) resource-param (get-value game player-key enemy-key resource-param))
 			effected-key (if (= effected :you) player-key enemy-key)
 			new-amt (if (or (nil? set) (not set)) (+ (get-in game [effected-key resource]) amt) amt)
+			new-amt (max 0 new-amt)
 			new-game (assoc-in game [effected-key resource] new-amt)
 			]
 			new-game
