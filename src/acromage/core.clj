@@ -289,7 +289,7 @@
     ]
     (if (= -1 winner) 
       (do-game term (do-turn game term))
-      (winner)
+      winner
     )
   )
 )
@@ -309,7 +309,7 @@
     enemy {:tower 50 :wall 25 :gems 15 :beasts 15 :bricks 15 :magic 2 :zoo 2 :quarry 2 :c1 nil :c2 nil :c3 nil :c4 nil :c5 nil :damage 0}
     all-cards (cards/load-cards)
     deck (shuffle all-cards)
-    game {:player1 player :player2 enemy :turn next-player :deck deck :turns 0 :win-conditions {:max-resources 100 :max-tower 100}}
+    game {:cards all-cards :player1 player :player2 enemy :turn next-player :deck deck :turns 0 :win-conditions {:max-resources 100 :max-tower 100}}
     ]
     (ui/put-info-text term "Flip was")
     (Thread/sleep 500)
