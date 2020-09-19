@@ -170,11 +170,17 @@
   (t/set-fg-color term :default)
 )
 
+(defn display-enemy-card [term card play-or-discard]
+  (clear-space term 75 0 120 9)
+  (display-card-info card 75 0 term (str "Enemy's " play-or-discard " Card"))
+)
+
 (defn display-game [term game]
   (let [
     player-start 18
     player2-start 50
     card-start-y 11
+    enemy-history (last (filter #(not= (:turn game) (:player %)) (:history game)))
     ]
 
     (clear-space term 0 0 67 7)
@@ -192,18 +198,20 @@
     (t/set-bg-color term :default)
 
     (t/move-cursor term player-start 0)
-    (t/put-string term "Player 1")
+    (t/put-string term (if (= (:turn game) :player1) "[Player 1]" "Player 1"))
 
     (t/move-cursor term player2-start 0)
-    (t/put-string term "Player 2")
+    (t/put-string term (if (= (:turn game) :player2) "[Player 2]" "Player 2"))
 
     ;; Set player text
     (t/set-bg-color term :default)
     (display-player-info (get game :player1) player-start 1 term)
     (display-player-info (get game :player2) player2-start 1 term)
 
+    (if (not (nil? enemy-history)) (display-enemy-card term (:def enemy-history) (utils/format-keyword (:type enemy-history))))
+
     (let 
-      [player-key (if (= (game :turn) 0) :player1 :player2)]
+      [player-key (:turn game)]
       (display-card-info (get-in game [player-key :c1]) 0 card-start-y term 1)
       (display-card-info (get-in game [player-key :c2]) 22 card-start-y term 2)
       (display-card-info (get-in game [player-key :c3]) 44 card-start-y term 3)
@@ -212,11 +220,6 @@
     )
     
   )
-)
-
-(defn display-enemy-card [term card play-or-discard]
-  (clear-space term 75 0 120 9)
-  (display-card-info card 75 0 term (str "Enemy's " play-or-discard " Card"))
 )
 
 (defn put-info-text [term text]

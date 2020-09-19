@@ -51,3 +51,7 @@
 	(if (empty? rest-of-list) 
 		(str first)
 		(str first (array-string rest-of-list))))
+
+(defn contains-value? [val col]
+	(if (some #(= (second %) val) col) true false)
+)

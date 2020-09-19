@@ -3,6 +3,7 @@
             [acromage.core :refer :all]
             [acromage.cards :refer :all]
             [acromage.user-interface :refer :all]
+            [acromage.game :refer :all]
   )
 )
 
