@@ -42,8 +42,8 @@
 (defn get-effect [{effected :effected resource-param :resource amt-param :amount set :set}]
 	(fn [game]
 		(let [
-			player-key (if (= (game :turn) 0) :player1 :player2)
-			enemy-key (if (= (game :turn) 1) :player1 :player2)
+			player-key (:turn game)
+			enemy-key (if (= (game :turn) :player1) :player2 :player1)
 			amt (if (int? amt-param) amt-param (get-value game player-key enemy-key amt-param))
 			resource (if (keyword? resource-param) resource-param (get-value game player-key enemy-key resource-param))
 			effected-key (if (= effected :you) player-key enemy-key)
