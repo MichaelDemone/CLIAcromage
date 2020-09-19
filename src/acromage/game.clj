@@ -71,32 +71,6 @@
   )
 )
 
-(defn play-card [game player card-num discard card-def]
-  (let [
-    player-key (:turn game)
-		new-player (remove-card player card-num)
-		new-game (assoc game player-key new-player)
-
-		history-entry {:player player-key :type (if discard :discarded :played) :def card-def}
-		new-history (conj (:history game) history-entry)
-		new-game (assoc new-game :history new-history)	
-    ] 
-    (if discard
-      (change-player new-game)
-      (let [
-        purchased-player (purchase-card new-player card-def)
-        turn-over-game (assoc new-game player-key purchased-player)
-        post-effect-game (apply-effects turn-over-game (card-def :effects))
-        ]
-        (if (card-def :play-again) 
-          post-effect-game 
-          (change-player post-effect-game)
-        )
-      )
-    )
-  )
-)
-
 (defn can-play-card [game card]
   (let [
     player (game (:turn game))
@@ -114,17 +88,7 @@
   )
 )
 
-(defn do-card-turn [game card]
-  (let [
-    player (game (:turn game))
-    card-num (subs card 0 1)
-    discard (clojure.string/includes? card "d")
-    card-def (player (keyword (str "c" card-num)))
-    new-game (play-card game player card-num discard card-def)
-    ]
-    new-game
-  )
-)
+
 
 (defn fill-deck [game deck]
   ; Fill the deck by checking
@@ -188,8 +152,8 @@
   )
 )
 
-(defn do-resource-gains [game]
-  (if (>= (game :turns) 2)
+(defn do-resource-gains [game & no-check]
+  (if (or no-check (>= (game :turns) 2))
     (do 
       (let[
         game1 (resource-gain game :player1 :gems :magic)
@@ -204,6 +168,44 @@
     )
     game
   )  
+)
+
+(defn play-card [game player card-num discard card-def]
+  (let [
+    player-key (:turn game)
+		new-player (remove-card player card-num)
+		new-game (assoc game player-key new-player)
+
+		history-entry {:player player-key :type (if discard :discarded :played) :def card-def}
+		new-history (conj (:history game) history-entry)
+		new-game (assoc new-game :history new-history)	
+    ] 
+    (if discard
+      (change-player new-game)
+      (let [
+        purchased-player (purchase-card new-player card-def)
+        turn-over-game (assoc new-game player-key purchased-player)
+        post-effect-game (apply-effects turn-over-game (card-def :effects))
+        ]
+        (if (card-def :play-again) 
+          post-effect-game 
+          (change-player post-effect-game)
+        )
+      )
+    )
+  )
+)
+
+(defn do-card-turn [game card]
+  (let [
+    player (game (:turn game))
+    card-num (subs card 0 1)
+    discard (clojure.string/includes? card "d")
+    card-def (player (keyword (str "c" card-num)))
+    new-game (play-card game player card-num discard card-def)
+    ]
+    new-game
+  )
 )
 
 (defn do-turn 

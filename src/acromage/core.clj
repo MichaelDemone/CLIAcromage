@@ -30,16 +30,43 @@
   )
 )
 
+(defn score-player [player scoring]
+  (let [
+    score (->>  
+            player
+            (filter #(contains? scoring (first %)))
+            (map #(* ((first %) scoring) (second %)))
+            (reduce +)  
+          )
+    ]
+    score
+  )
+)
+
+(defn score-game [game player-key] 
+  (let 
+    [
+      scoring-data (get-in game [player-key :scoring])
+      scoring-data-you (:you scoring-data)
+      score-you (score-player (player-key game) scoring-data-you)
+
+      other-key (if (= player-key :player1) :player2 :player1)
+      scoring-data-other (:other scoring-data)
+      score-other (score-player (other-key game) scoring-data-other)
+    ]
+    (println "Score other:" score-other "Score you:" score-you )
+    ;; TODO: Include 'play again' in score calculations somehow.
+    (+ score-you score-other)
+  )
+)
+
 (defn get-ai-to-pick-card [game]
   (let [
-    card (rand-nth (filter #(g/can-play-card game %) ["1" "2" "3" "4" "5" "1d" "2d" "3d" "4d" "5d"]))
-    card-num (clojure.string/replace card "d" "")
-    card-keyword (keyword (str "c" card-num))
-    discard (clojure.string/includes? card "d")
-    player (game (:turn game))
-    card-def (player (keyword (str "c" card-num)))
+    player (:turn game)
+    playable-cards (filter #(g/can-play-card game %) ["1" "2" "3" "4" "5" "1d" "2d" "3d" "4d" "5d"])
+    max-result (apply max-key #(score-game (g/do-resource-gains (g/do-card-turn game %) true) player) playable-cards)
   ]
-    card
+    max-result
   )
 )
 
@@ -72,6 +99,69 @@
 )
 
 (defn -main
+  "Jump into a game of acromage"
+  [& args]
+  (let [
+    term (t/get-terminal :swing {:cols 120 :rows 30})
+    res (t/start term)
+    game-type {:name "original", :starting-tower 50, :starting-wall 25, :start-resource 15, :start-resource-gain 2, :max-resource 100, :max-tower 100}
+    next-player :player1
+    starting-tower (:starting-tower game-type)
+    starting-wall (:starting-wall game-type)
+    starting-resources (:start-resource game-type)
+    starting-gain (:start-resource-gain game-type)
+    max-resource (:max-resource game-type)
+    max-tower (:max-tower game-type)
+    player {
+      :tower starting-tower 
+      :wall starting-wall 
+      :gems starting-resources 
+      :beasts starting-resources 
+      :bricks starting-resources 
+      :magic starting-gain
+      :zoo starting-gain
+      :quarry starting-gain 
+      :c1 nil 
+      :c2 nil 
+      :c3 nil 
+      :c4 nil 
+      :c5 nil 
+      :damage 0
+      :card-pick-function (partial get-user-to-pick-card term)}
+    player2 (assoc player :card-pick-function get-ai-to-pick-card)
+    player2 (assoc player2 :scoring {
+                                      :you {:wall 1 :tower 1 :gems 1 :bricks 1 :beasts 1 :magic 1 :quarry 1 :zoo 1} 
+                                      :other {:wall -1 :tower -1 :gems -1 :bricks -1 :beasts -1 :magic -1 :quarry -1 :zoo -1}})
+    all-cards (cards/load-cards)
+    deck (shuffle all-cards)
+    game {
+      :cards all-cards 
+      :player1 player
+      :player2 player2
+      :turn next-player 
+      :deck deck 
+      :turns 0 
+      :win-conditions {:max-resources max-resource :max-tower max-tower}
+      :history []
+      }
+    game (->> game g/fill-nil-cards)
+    ]
+    (let [winner (do-game game)]
+      (t/clear term)
+      (if (= winner :all)
+        (ui/get-user-input term "A tie has occured! <Enter to quit>" [""])
+        (if (= winner :player1) 
+          (ui/get-user-input term "Player 1 has won! <Enter to quit>" [""])
+          (ui/get-user-input term "Player 2 has won! <Enter to quit>" [""])
+        )
+      )
+    )
+    
+    (t/stop term)
+  )
+)
+
+(defn -main2
   "Play a game of achromage!"
   [& args]
 
@@ -107,6 +197,9 @@
       :damage 0
       :card-pick-function (partial get-user-to-pick-card term)}
     player2 (assoc player :card-pick-function get-ai-to-pick-card)
+    player2 (assoc player2 :scoring {
+                                      :you {:wall 1 :tower 1 :gems 1 :bricks 1 :beasts 1 :magic 1 :quarry 1 :zoo 1} 
+                                      :other {:wall -1 :tower -1 :gems -1 :bricks -1 :beasts -1 :magic -1 :quarry -1 :zoo -1}})
     all-cards (cards/load-cards)
     deck (shuffle all-cards)
     game {
