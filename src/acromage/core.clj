@@ -111,8 +111,8 @@
     deck (shuffle all-cards)
     game {
       :cards all-cards 
-      :player1 player 
-      :player2 player
+      :player1 player
+      :player2 player2
       :turn next-player 
       :deck deck 
       :turns 0 
