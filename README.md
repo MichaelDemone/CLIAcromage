@@ -50,3 +50,6 @@ Each game is defined with the following:
 `max-resource` is the amount of bricks, gems, or beasts required to win the game
 
 `max-tower` is the amount of tower required to win the game
+
+### Bot Training
+You can battle bots by running `lein repl` and calling `evo/train-ai` where it will run a small tournament for bots and tell you how the best bot behaves using a scoring system that you can then add into main and fight that bot yourself!
