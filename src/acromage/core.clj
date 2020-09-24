@@ -7,11 +7,12 @@
     [acromage.user-interface :as ui]
     [csv.csv :as csv]
     [acromage.game :as g]
+    [acromage.evolution :as evo]
   )
 )
 
 (defn reload [] 
-  (require 'acromage.core 'acromage.cards 'utils.general 'acromage.game :reload))
+  (require 'acromage.core 'acromage.cards 'utils.general 'acromage.game 'acromage.evolution :reload))
 
 (def DEBUG 1)
 
@@ -30,41 +31,11 @@
   )
 )
 
-(defn score-player [player scoring]
-  (let [
-    score (->>  
-            player
-            (filter #(contains? scoring (first %)))
-            (map #(* ((first %) scoring) (second %)))
-            (reduce +)  
-          )
-    ]
-    score
-  )
-)
-
-(defn score-game [game player-key] 
-  (let 
-    [
-      scoring-data (get-in game [player-key :scoring])
-      scoring-data-you (:you scoring-data)
-      score-you (score-player (player-key game) scoring-data-you)
-
-      other-key (if (= player-key :player1) :player2 :player1)
-      scoring-data-other (:other scoring-data)
-      score-other (score-player (other-key game) scoring-data-other)
-    ]
-    (println "Score other:" score-other "Score you:" score-you )
-    ;; TODO: Include 'play again' in score calculations somehow.
-    (+ score-you score-other)
-  )
-)
-
 (defn get-ai-to-pick-card [game]
   (let [
     player (:turn game)
     playable-cards (filter #(g/can-play-card game %) ["1" "2" "3" "4" "5" "1d" "2d" "3d" "4d" "5d"])
-    max-result (apply max-key #(score-game (g/do-resource-gains (g/do-card-turn game %) true) player) playable-cards)
+    max-result (apply max-key #(evo/score-game (g/do-resource-gains (g/do-card-turn game %) true) player) playable-cards)
   ]
     max-result
   )
@@ -197,9 +168,25 @@
       :damage 0
       :card-pick-function (partial get-user-to-pick-card term)}
     player2 (assoc player :card-pick-function get-ai-to-pick-card)
-    player2 (assoc player2 :scoring {
-                                      :you {:wall 1 :tower 1 :gems 1 :bricks 1 :beasts 1 :magic 1 :quarry 1 :zoo 1} 
-                                      :other {:wall -1 :tower -1 :gems -1 :bricks -1 :beasts -1 :magic -1 :quarry -1 :zoo -1}})
+    player2 (assoc player2 :scoring {:you 
+                                      {:wall 0.8880038453932377, 
+                                      :tower 0.19327820962229836, 
+                                      :gems -0.34475420718508676, 
+                                      :bricks 0.6234354890682394, 
+                                      :beasts 0.4853459959678652, 
+                                      :magic 0.3246519564506475, 
+                                      :quarry 0.9281160386563267, 
+                                      :zoo 0.618170900357443}, 
+                                    :other 
+                                      {:wall -0.7260339527923773, 
+                                      :tower -0.8666592153065715, 
+                                      :gems -0.5404909460290773, 
+                                      :bricks -0.2362455462037628, 
+                                      :beasts -0.12501077873735833, 
+                                      :magic -1, 
+                                      :quarry -0.40765187258048374, 
+                                      :zoo -0.046090962250486034}
+                                    })
     all-cards (cards/load-cards)
     deck (shuffle all-cards)
     game {
