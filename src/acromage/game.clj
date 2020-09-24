@@ -95,7 +95,6 @@
   ; Putting all cards into deck that aren't in players' hands.
   (if (= (count deck) 0)
     (do 
-      (println "Reshuffling cards")
       (->> 
         (:cards game)
         (filter 
